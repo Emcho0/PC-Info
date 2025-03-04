@@ -6,96 +6,151 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>826</width>
+    <height>327</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QTabWidget" name="tabWidget">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>801</width>
-      <height>551</height>
-     </rect>
-    </property>
-    <property name="currentIndex">
-     <number>2</number>
-    </property>
-    <widget class="QWidget" name="tab">
-     <attribute name="title">
-      <string>Sistemske informacije</string>
-     </attribute>
-    </widget>
-    <widget class="QWidget" name="tab_2">
-     <attribute name="title">
-      <string>Informacije o hardware-u</string>
-     </attribute>
-    </widget>
-    <widget class="QWidget" name="tab_3">
-     <attribute name="title">
-      <string>Teme</string>
-     </attribute>
-     <widget class="QWidget" name="horizontalLayoutWidget">
-      <property name="geometry">
-       <rect>
-        <x>190</x>
-        <y>200</y>
-        <width>432</width>
-        <height>80</height>
-       </rect>
+   <layout class="QVBoxLayout" name="verticalLayout_main">
+    <item>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <widget class="QPushButton" name="yorumiAbyssButton">
-         <property name="text">
-          <string>Yorumi Abyss</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="yorumiMistButton">
-         <property name="text">
-          <string>Yorumi Mist</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="yorumiKrakenButton">
-         <property name="text">
-          <string>Yorumi Kraken</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="yorumiShadeButton">
-         <property name="text">
-          <string>Yorumi Shade</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="defaultThemeButton">
-         <property name="text">
-          <string>Default</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <property name="currentIndex">
+       <number>2</number>
+      </property>
+      <widget class="QWidget" name="tab">
+       <attribute name="title">
+        <string>Sistemske informacije</string>
+       </attribute>
+       <widget class="QListWidget" name="listWidget">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>256</width>
+          <height>192</height>
+         </rect>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="tab_2">
+       <attribute name="title">
+        <string>Informacije o hardware-u</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="0">
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <widget class="QLabel" name="cpuLabel">
+            <property name="text">
+             <string>CPU Info</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QListWidget" name="cpuList"/>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="1">
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QLabel" name="diskLabel">
+            <property name="text">
+             <string>Disk Info</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QListWidget" name="diskList"/>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="2">
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QLabel" name="RAMLabel">
+            <property name="text">
+             <string>RAM Info</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QListWidget" name="RAMList"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_3">
+       <attribute name="title">
+        <string>Teme</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_themes">
+        <item>
+         <widget class="QPushButton" name="yorumiAbyssButton">
+          <property name="text">
+           <string>Yorumi Abyss</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="yorumiMistButton">
+          <property name="text">
+           <string>Yorumi Mist</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="yorumiShadeButton">
+          <property name="text">
+           <string>Yorumi Shade</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="yorumiKrakenButton">
+          <property name="text">
+           <string>Yorumi Kraken</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="defaultThemeButton">
+          <property name="text">
+           <string>Default</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
-    </widget>
-   </widget>
+    </item>
+   </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>826</width>
      <height>21</height>
     </rect>
    </property>

@@ -7,7 +7,10 @@
 #include <QMessageBox>
 #include <QStorageInfo>
 #include<QSysInfo>
-
+#include <QFileIconProvider>
+#include<QTimer>
+#include<QFileSystemModel>
+#include <QFontDatabase>
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -23,6 +26,8 @@ public:
     ~MainWindow();
 
 private slots:
+    // tipke za mijenjanje tema
+
     void on_yorumiAbyssButton_clicked();
 
     void on_yorumiMistButton_clicked();
@@ -33,7 +38,20 @@ private slots:
 
     void on_defaultThemeButton_clicked();
 
+
+    // funkcije za pracenje hardverskih informacija
+    void updateDrives();
+    // void updateCPU();
+    // void updateRAM();
+
+
+    // funkcije za pracenje sistemskih informacija informacija
+    // void showSysInfo();
+
+
 private:
     Ui::MainWindow *ui;
+     QFileSystemModel *model = nullptr;
+    QTimer *timer;
 };
 #endif // MAINWINDOW_H

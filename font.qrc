@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/NewFont">
+        <file>Font/GeistMono.ttf</file>
+    </qresource>
+</RCC>
