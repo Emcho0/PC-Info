@@ -2,23 +2,20 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-
-// biblioteke potrebne za aplikaciju
-#include <QMessageBox>
-#include <QStorageInfo>
-#include<QSysInfo>
+#include <QFileSystemModel>
+#include <QProcess>
+#include <QTimer>
 #include <QFileIconProvider>
-#include<QTimer>
-#include<QFileSystemModel>
+#include <QStorageInfo>
+#include <QSysInfo>
+#include <QMessageBox>
 #include <QFontDatabase>
+#include <QColor>
 QT_BEGIN_NAMESPACE
-namespace Ui {
-class MainWindow;
-}
+namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
@@ -26,32 +23,35 @@ public:
     ~MainWindow();
 
 private slots:
-    // tipke za mijenjanje tema
-
+    // Teme
     void on_yorumiAbyssButton_clicked();
-
     void on_yorumiMistButton_clicked();
-
     void on_yorumiKrakenButton_clicked();
-
     void on_yorumiShadeButton_clicked();
-
     void on_defaultThemeButton_clicked();
 
-
-    // funkcije za pracenje hardverskih informacija
+    // Hardverske informacije
     void updateDrives();
-    // void updateCPU();
-    // void updateRAM();
+    void updateCPU();
+    void updateRAM();
 
-
-    // funkcije za pracenje sistemskih informacija informacija
-    // void showSysInfo();
-
+    // Sistemske informacije
+    void showSysInfo();
 
 private:
     Ui::MainWindow *ui;
-     QFileSystemModel *model = nullptr;
-    QTimer *timer;
+    QFileSystemModel *model = nullptr;
+    QTimer *driveTimer;
+    QTimer *cpuTimer;
+    QTimer *ramTimer;
+
+    // Metode za CPU informacije
+    QString getCPUName();
+    int getCPUCores();
+
+    // Metode za RAM informacije
+    QString getTotalRAM();
+    QString getAvailableRAM();
+    double getRAMUsage();
 };
 #endif // MAINWINDOW_H

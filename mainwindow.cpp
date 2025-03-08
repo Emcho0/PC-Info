@@ -6,21 +6,26 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     model = new QFileSystemModel;
-    // Azuriranje informacije o diskovima
-    timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, &MainWindow::updateDrives);
-    timer->start(1000);
-    // Azuriranje CPU informacija
-    // timer = new QTimer(this);
-    // connect(timer, &QTimer::timeout, this, &MainWindow::updateCPU);
-    // timer->start(1000);
-    // Azuriranje RAM informacija
-    // timer = new QTimer(this);
-    // connect(timer, &QTimer::timeout, this, &MainWindow::updateRAM);
-    // timer->start(1000);
+
+    // Inicijalizacija tajmera
+    driveTimer = new QTimer(this);
+    cpuTimer = new QTimer(this);
+    ramTimer = new QTimer(this);
+
+    // Povezivanje tajmera s odgovarajućim funkcijama
+    connect(driveTimer, &QTimer::timeout, this, &MainWindow::updateDrives);
+    connect(cpuTimer, &QTimer::timeout, this, &MainWindow::updateCPU);
+    connect(ramTimer, &QTimer::timeout, this, &MainWindow::updateRAM);
+
+    // Pokretanje tajmera
+    driveTimer->start(1000);
+    cpuTimer->start(1000);
+    ramTimer->start(1000);
+
+    showSysInfo();
 }
 
-MainWindow::~MainWindow() { delete ui; }
+MainWindow::~MainWindow() { delete ui; delete driveTimer; delete cpuTimer; delete ramTimer; }
 
 // Teme za aplikaciju
 // Vise informacija na https://github.com/yorumicolors
@@ -396,9 +401,184 @@ void MainWindow::updateDrives() {
     }
 }
 
+// info o RAM memoriji
+QString MainWindow::getTotalRAM() {
+    QProcess process;
+#ifdef Q_OS_WIN
+    process.start("powershell", QStringList() << "-Command" << "Get-CimInstance Win32_ComputerSystem | Select-Object -ExpandProperty TotalPhysicalMemory");
+#else
+    process.start("sh", QStringList() << "-c" << "grep MemTotal /proc/meminfo | awk '{print $2}'");
+#endif
+    process.waitForFinished();
+    quint64 bytes = process.readAllStandardOutput().trimmed().toULongLong();
+
+#ifdef Q_OS_WIN
+    return QString::number(bytes / (1024 * 1024 * 1024.0), 'f', 1) + " GB";
+#else
+    return QString::number(bytes / 1024.0 / 1024.0, 'f', 1) + " GB"; // Pretvaranje iz KB u GB
+#endif
+}
+
+QString MainWindow::getAvailableRAM() {
+    QProcess process;
+#ifdef Q_OS_WIN
+    process.start("powershell", QStringList() << "-Command" << "Get-CimInstance Win32_OperatingSystem | Select-Object -ExpandProperty FreePhysicalMemory");
+#else
+    process.start("sh", QStringList() << "-c" << "grep MemAvailable /proc/meminfo | awk '{print $2}'");
+#endif
+    process.waitForFinished();
+    quint64 bytes = process.readAllStandardOutput().trimmed().toULongLong();
+
+#ifdef Q_OS_WIN
+    return QString::number(bytes / (1024 * 1024.0), 'f', 1) + " GB"; // Windows vraća KB
+#else
+    return QString::number(bytes / 1024.0 / 1024.0, 'f', 1) + " GB"; // Linux vraća KB
+#endif
+}
+
+double MainWindow::getRAMUsage() {
+    QProcess process;
+#ifdef Q_OS_WIN
+    process.start("powershell", QStringList() << "-Command" <<
+                                    "$total = (Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory; "
+                                    "$free = (Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory * 1024; "
+                                    "Write-Output (($total - $free) / $total * 100)");
+#else
+    process.start("sh", QStringList() << "-c" <<
+                            "free | awk '/Mem/{printf \"%.1f\", ($2 - $7)/$2 * 100}'");
+#endif
+    process.waitForFinished();
+    return process.readAllStandardOutput().trimmed().toDouble();
+}
+
+// Ažurirana updateRAM() metoda
+void MainWindow::updateRAM() {
+    double usedPercentage = getRAMUsage();
+    QString available = getAvailableRAM();
+    QString total = getTotalRAM();
+
+    QString ramText = QString("Total: %1\nUsed: %2% (%3 free)")
+                          .arg(total)
+                          .arg(usedPercentage, 0, 'f', 1)
+                          .arg(available);
+
+    QColor color;
+    if (usedPercentage > 80) {
+        color = Qt::darkRed;
+    } else if (usedPercentage > 50) {
+        color = Qt::darkYellow;
+    } else {
+        color = Qt::darkGreen;
+    }
+
+    // Ažuriraj samo ako već postoje stavke
+    if(ui->RAMList->count() > 0) {
+        QListWidgetItem *item = ui->RAMList->item(0);
+        item->setText(ramText);
+        item->setForeground(color);
+    } else {
+        QListWidgetItem *item = new QListWidgetItem(ramText);
+        item->setForeground(color);
+        ui->RAMList->addItem(item);
+    }
+}
+
+
+// info o procesoru
+
+QString MainWindow::getCPUName() {
+    QProcess process;
+#ifdef Q_OS_WIN
+    process.start("powershell", QStringList() << "-Command" << "Get-WmiObject Win32_Processor | Select-Object -ExpandProperty Name");
+#else
+    process.start("sh", QStringList() << "-c" << "cat /proc/cpuinfo | grep 'model name' | uniq | cut -d':' -f2 | sed 's/^ //'");
+#endif
+    process.waitForFinished();
+    return process.readAllStandardOutput().trimmed();
+}
+
+// Metoda za dobijanje broja jezgara
+int MainWindow::getCPUCores() {
+    QProcess process;
+#ifdef Q_OS_WIN
+    process.start("powershell", QStringList() << "-Command" << "Get-WmiObject Win32_Processor | Select-Object -ExpandProperty NumberOfCores");
+#else
+    process.start("sh", QStringList() << "-c" << "grep -c '^processor' /proc/cpuinfo");
+#endif
+    process.waitForFinished();
+    return process.readAllStandardOutput().trimmed().toInt();
+}
+
+
+void MainWindow::updateCPU(){
+    QProcess process;
+    QString command;
+
+#ifdef Q_OS_WIN
+    command = "powershell -command \"(Get-Counter '\\Processor(_Total)\\% Processor Time').CounterSamples.CookedValue\"";
+#else
+    command = "top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}'";
+#endif
+
+    process.start(command);
+    process.waitForFinished();
+
+    QString output = process.readAllStandardOutput().trimmed();
+    bool ok;
+    double cpuUsage = output.toDouble(&ok);
+
+    if (!ok) return;
+
+    QString cpuUsageText = QString("Usage: %1%").arg(cpuUsage, 0, 'f', 2);
+
+    QColor color;
+    if (cpuUsage > 80) color = Qt::red;
+    else if (cpuUsage > 50) color = Qt::yellow;
+    else color = Qt::green;
+
+    // Ažuriraj samo usage (zadnji item)
+    if (ui->cpuList->count() > 2) {
+        QListWidgetItem *item = ui->cpuList->item(2);
+        item->setText(cpuUsageText);
+        item->setForeground(color);
+    } else {
+        QListWidgetItem *item = new QListWidgetItem(cpuUsageText);
+        item->setForeground(color);
+        ui->cpuList->addItem(item);
+    }
+}
+
+
+
+
+
 // softverske informacije
 // informacije o sistemu
-// void MainWindow::showSysInfo(){
-//     QList<QSysInfo> info = {QSysInfo::prettyProductName(),
-//     QSysInfo::buildCpuArchitecture(),};
-// }
+void MainWindow::showSysInfo() {
+
+    QList<QString> info = {
+        "OS: " + QSysInfo::prettyProductName(),
+        "CPU arhitektura: " + QSysInfo::currentCpuArchitecture(),
+        "Kernel: " + QSysInfo::kernelType() + " " + QSysInfo::kernelVersion(),
+        "Hostname: " + QSysInfo::machineHostName()
+    };
+
+    ui->osList->clear();
+    for (const QString &sysinfo : info) {
+        ui->osList->addItem(new QListWidgetItem(sysinfo));
+    }
+
+
+    QString cpuName = getCPUName();
+    int cpuCores = getCPUCores();
+
+    ui->cpuList->clear();
+    ui->cpuList->addItem("CPU: " + cpuName);
+    ui->cpuList->addItem("Cores: " + QString::number(cpuCores));
+
+    QString totalRAM = getTotalRAM();
+    QListWidgetItem *ramItem = new QListWidgetItem("Total RAM: " + totalRAM);
+    ui->RAMList->addItem(ramItem);
+}
+
+
